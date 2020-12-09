@@ -10,11 +10,15 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
+
+using dumptruck.Models;
 
 namespace dumptruck
 {
     public class Startup
     {
+        readonly string MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
@@ -22,10 +26,20 @@ namespace dumptruck
 
         public IConfiguration Configuration { get; }
 
+
         // This method gets called by the runtime. Use this method to add services to the container.
+        //i.e. register stuff here
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddDbContext<NoteContext>(opt => opt.UseInMemoryDatabase("NoteList"));
             services.AddControllers();
+            services.AddCors(OptionsBuilderConfigurationExtensions =>
+            {
+                OptionsBuilderConfigurationExtensions.AddPolicy(name: MyAllowSpecificOrigins, builder =>
+                 {
+                     builder.WithOrigins("http://localhost:4200").AllowAnyHeader().AllowAnyMethod();
+                 });
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -39,6 +53,8 @@ namespace dumptruck
             app.UseHttpsRedirection();
 
             app.UseRouting();
+
+            app.UseCors(MyAllowSpecificOrigins);
 
             app.UseAuthorization();
 
