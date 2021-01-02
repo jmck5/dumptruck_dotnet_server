@@ -8,7 +8,7 @@ namespace dumptruck.Models
 {
     public class Note
     {
-        public long NoteId { get; set; }
+        public long id { get; set; }
         public string NoteContent { get; set; }
         public string NoteAuthor { get; set; }
         //public TimestampAttribute NoteTimeStamp { get; set; }

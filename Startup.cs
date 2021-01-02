@@ -11,6 +11,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
+using Pomelo.EntityFrameworkCore;
+
 
 using dumptruck.Models;
 
@@ -31,13 +33,15 @@ namespace dumptruck
         //i.e. register stuff here
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContext<NoteContext>(opt => opt.UseInMemoryDatabase("NoteList"));
+            services.AddDbContext<NoteContext>(opt => opt.UseMySql(Configuration.GetConnectionString("WhatIsMyConnectionString")));
             services.AddControllers();
             services.AddCors(OptionsBuilderConfigurationExtensions =>
             {
                 OptionsBuilderConfigurationExtensions.AddPolicy(name: MyAllowSpecificOrigins, builder =>
                  {
-                     builder.WithOrigins("http://localhost:4200").AllowAnyHeader().AllowAnyMethod();
+                     //builder.WithOrigins("http://localhost:4200","*").AllowAnyHeader().AllowAnyMethod();
+                     //Note to future self above will only allow localmachine, below will allow any machine/origin 
+                     builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
                  });
             });
         }
@@ -50,13 +54,15 @@ namespace dumptruck
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection();
 
             app.UseRouting();
 
             app.UseCors(MyAllowSpecificOrigins);
 
             app.UseAuthorization();
+
+            
 
             app.UseEndpoints(endpoints =>
             {

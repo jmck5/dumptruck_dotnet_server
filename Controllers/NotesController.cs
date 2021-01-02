@@ -24,8 +24,28 @@ namespace dumptruck.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<NoteDTO>>> GetNotes()
         {
+            //should verify auth token first
+            ScoobyAuthenticate(Request);
             return await _context.Notes.Select(x => ItemToDTO(x)).ToListAsync();
         }
+
+        // GET: api/Notes/word?myword=""
+        [HttpGet("word")]
+        public async Task<List<NoteDTO>> GetNotes(string myWord) 
+        {
+            ScoobyAuthenticate(Request);
+            List<NoteDTO> filtered = new List<NoteDTO>();
+            IEnumerable<Note> filterQuery =
+                 from scoobyNote in _context.Notes
+                 where scoobyNote.NoteContent.Contains(myWord)
+                 select scoobyNote;
+            foreach (var note in filterQuery) {
+                NoteDTO note_dto = ItemToDTO(note);
+                filtered.Add(note_dto);
+            }
+            return filtered;
+        }
+
 
         // GET: api/Notes/5
         [HttpGet("{id}")]
@@ -47,7 +67,7 @@ namespace dumptruck.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> PutNote(long id, NoteDTO noteDTO)
         {
-            if (id != noteDTO.NoteId)
+            if (id != noteDTO.id)
             {
                 return BadRequest();
             }
@@ -95,7 +115,7 @@ namespace dumptruck.Controllers
             _context.Notes.Add(noteItem);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetNote", new { id = noteItem.NoteId }, ItemToDTO(noteItem));
+            return CreatedAtAction("GetNote", new { id = noteItem.id }, ItemToDTO(noteItem));
         }
 
         // DELETE: api/Notes/5
@@ -116,7 +136,12 @@ namespace dumptruck.Controllers
 
         private bool NoteExists(long id)
         {
-            return _context.Notes.Any(e => e.NoteId == id);
+            return _context.Notes.Any(e => e.id == id);
+        }
+
+        public bool ScoobyAuthenticate(HttpRequest req) {
+            
+            return true;
         }
 
         private static NoteDTO ItemToDTO(Note note) =>
@@ -124,7 +149,7 @@ namespace dumptruck.Controllers
             {
                 NoteContent = note.NoteContent,
                 NoteAuthor = note.NoteAuthor,
-                NoteId = note.NoteId
+                id = note.id
             };
     }
 }
